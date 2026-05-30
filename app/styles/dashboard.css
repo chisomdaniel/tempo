@@ -1,0 +1,36 @@
+.dashboard {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.timer {
+  p {
+    /* Text */
+
+    width: 117.47px;
+    height: 53px;
+
+    font-family: "Geist";
+    font-style: normal;
+    font-weight: 100;
+    font-size: 48px;
+    line-height: 53px;
+    /* identical to box height, or 110% */
+    display: flex;
+    align-items: center;
+    text-align: center;
+    letter-spacing: -2.4px;
+
+    color: #e5e2e1;
+
+    /* Inside auto layout */
+    flex: none;
+    order: 0;
+    flex-grow: 0;
+  }
+}
+
+.h-item {
+  color: #e5e2e1;
+}
