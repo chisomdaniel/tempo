@@ -21,3 +21,11 @@ export interface Task {
   icon: SvgName;
   status: "completed" | "pending" | "in-progress";
 }
+
+export interface QuickTask {
+  id: number;
+  taskName: string;
+  desc: string;
+  mins: number;
+  icon: SvgName;
+}

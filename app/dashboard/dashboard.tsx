@@ -1,10 +1,14 @@
 import CreateForm from "../components/create-form";
 import { useState, useEffect } from "react";
-import type { displayState } from "../shared/types";
+import type { displayState, QuickTask } from "../shared/types";
 import Timer from "../components/timer";
 import HistoryItem from "../components/history-item";
 import db from "~/utils/db.service";
 import type { Task } from "../shared/types";
+import Modal from "../components/modal";
+import SaveTaskForm from "../components/save-task-form";
+import Svg from "../components/svg";
+import SavedTasks from "../components/saved-tasks";
 
 export function Dashboard() {
   const [minutes, setMinutes] = useState(25);
@@ -12,7 +16,14 @@ export function Dashboard() {
   const [displayState, setDisplayState] = useState<displayState>("action");
   const [sessionsCount, setSessionsCount] = useState(0);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [quickTasks, setQuickTasks] = useState<QuickTask[]>([]);
   const [username, setUsername] = useState("User");
+
+  // Multi-purpose modal states
+  const [isCreateSavedOpen, setIsCreateSavedOpen] = useState(false);
+  const [selectedQuickTask, setSelectedQuickTask] = useState<QuickTask | null>(
+    null,
+  );
 
   useEffect(() => {
     const storedName = localStorage.getItem("username");
@@ -27,6 +38,7 @@ export function Dashboard() {
 
   useEffect(() => {
     db.getAllData().then((data) => setTasks(data));
+    db.getQuickTasks().then((data) => setQuickTasks(data));
   }, []);
 
   const handleStartNewTask = () => {
@@ -115,29 +127,29 @@ export function Dashboard() {
             aria-label="Saved tasks"
             className="saved-tasks-list flex gap-6 mt-6 w-full overflow-x-scroll no-scrollbar"
           >
-            <div className="task-card surface-card rounded-2xl w-40 h-40 p-6 shrink-0 flex flex-col gap-4 justify-between">
-              <span className="bg-(--color-bg-2) w-10 h-10 rounded-full grid place-content-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="size-6"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M14.447 3.026a.75.75 0 0 1 .527.921l-4.5 16.5a.75.75 0 0 1-1.448-.394l4.5-16.5a.75.75 0 0 1 .921-.527ZM16.72 6.22a.75.75 0 0 1 1.06 0l5.25 5.25a.75.75 0 0 1 0 1.06l-5.25 5.25a.75.75 0 1 1-1.06-1.06L21.44 12l-4.72-4.72a.75.75 0 0 1 0-1.06Zm-9.44 0a.75.75 0 0 1 0 1.06L2.56 12l4.72 4.72a.75.75 0 0 1-1.06 1.06L.97 12.53a.75.75 0 0 1 0-1.06l5.25-5.25a.75.75 0 0 1 1.06 0Z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </span>
-
-              <div>
-                <h3 className="text-body-md">Coding</h3>
-                <p className="text-label-md">90 Min</p>
+            {quickTasks.map((qt) => (
+              <div
+                key={qt.id}
+                className="task-card surface-card rounded-2xl w-40 h-40 p-6 shrink-0 flex flex-col gap-4 justify-between cursor-pointer hover:bg-(--color-surface-container-highest) transition-colors"
+                onClick={() => setSelectedQuickTask(qt)}
+              >
+                <span className="bg-(--color-bg-2) w-10 h-10 rounded-full grid place-content-center">
+                  <Svg name={qt.icon} />
+                </span>
+                <div>
+                  <h3 className="text-body-md whitespace-nowrap overflow-hidden text-ellipsis">
+                    {qt.taskName}
+                  </h3>
+                  <p className="text-label-md">{qt.mins} Min</p>
+                </div>
               </div>
-            </div>
-            <div className="task-card surface-card rounded-2xl w-40 h-40 p-6 shrink-0 flex flex-col gap-4 justify-between">
-              <span className="bg-(--color-bg-2) w-10 h-10 rounded-full grid place-content-center">
+            ))}
+
+            <div
+              className="task-card surface-card rounded-2xl w-40 h-40 p-6 shrink-0 flex flex-col gap-4 justify-between cursor-pointer hover:bg-(--color-surface-container-highest) transition-colors border border-dashed border-(--color-outline)"
+              onClick={() => setIsCreateSavedOpen(true)}
+            >
+              <span className="bg-(--color-bg-2) w-12 h-12 rounded-full grid place-content-center mx-auto mt-4 text-(--color-on-surface)">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -149,34 +161,45 @@ export function Dashboard() {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"
+                    d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
                   />
-                </svg>
-              </span>
-              <div>
-                <h3 className="text-body-md">Reading</h3>
-                <p className="text-label-md">45 Min</p>
-              </div>
-            </div>
-            <div className="task-card surface-card rounded-2xl w-40 h-40 p-6 shrink-0 flex flex-col gap-4 justify-between">
-              <span className="bg-(--color-bg-2) w-10 h-10 rounded-full grid place-content-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  className="size-5"
-                >
-                  <path d="m2.695 14.762-1.262 3.155a.5.5 0 0 0 .65.65l3.155-1.262a4 4 0 0 0 1.343-.886L17.5 5.501a2.121 2.121 0 0 0-3-3L3.58 13.419a4 4 0 0 0-.885 1.343Z" />
                 </svg>
               </span>
 
               <div>
-                <h3 className="text-body-md">Writing</h3>
-                <p className="text-label-md">50 Min</p>
+                <h3 className="text-body-md text-center">Add New</h3>
               </div>
             </div>
           </div>
         </section>
+        <Modal
+          isOpen={isCreateSavedOpen}
+          onClose={() => setIsCreateSavedOpen(false)}
+        >
+          <SaveTaskForm
+            onClose={() => {
+              setIsCreateSavedOpen(false);
+              db.getQuickTasks().then((data) => setQuickTasks(data));
+            }}
+            setQuickTasks={setQuickTasks}
+          />
+        </Modal>
+
+        <Modal
+          isOpen={!!selectedQuickTask}
+          onClose={() => setSelectedQuickTask(null)}
+        >
+          {selectedQuickTask && (
+            <SavedTasks
+              selectedQuickTask={selectedQuickTask}
+              setTasks={setTasks}
+              setMinutes={setMinutes}
+              setDisplayState={setDisplayState}
+              setSelectedQuickTask={setSelectedQuickTask}
+              setSessionsCount={setSessionsCount}
+            />
+          )}
+        </Modal>
 
         <section className="today-history*: pb-16">
           <h2 className="text-headline-md mb-12">Today's Flow</h2>

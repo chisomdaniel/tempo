@@ -1,9 +1,11 @@
-import { type Task } from "../shared/types";
+import { type Task, type QuickTask } from "../shared/types";
 
 export class DBservice {
   private static instance: DBservice;
   private store: Task[] = [];
+  private quickStore: QuickTask[] = [];
   private lastId: number = 0;
+  private lastQuickId: number = 0;
   private initialized: boolean = false;
 
   private constructor() {}
@@ -22,9 +24,15 @@ export class DBservice {
     return new Promise((resolve) => {
       const savedTasks = localStorage.getItem("tasks");
       const savedId = localStorage.getItem("lastId");
+      
+      const savedQuickTasks = localStorage.getItem("quickTasks");
+      const savedQuickId = localStorage.getItem("lastQuickId");
 
       if (savedId) {
         this.lastId = Number(savedId);
+      }
+      if (savedQuickId) {
+        this.lastQuickId = Number(savedQuickId);
       }
 
       if (savedTasks) {
@@ -34,6 +42,15 @@ export class DBservice {
           console.error("Failed to parse tasks from localStorage", e);
         }
       }
+      
+      if (savedQuickTasks) {
+        try {
+          this.quickStore = JSON.parse(savedQuickTasks);
+        } catch (e) {
+          console.error("Failed to parse quickTasks from localStorage", e);
+        }
+      }
+      
       this.initialized = true;
       resolve();
     });
@@ -57,6 +74,23 @@ export class DBservice {
     if (typeof window !== "undefined") {
       localStorage.setItem("lastId", this.lastId.toString());
       localStorage.setItem("tasks", JSON.stringify(this.store));
+    }
+  }
+
+  public async getQuickTasks(): Promise<QuickTask[]> {
+    await this.init();
+    return this.quickStore;
+  }
+
+  public async addQuickTask(data: Omit<QuickTask, "id">): Promise<void> {
+    await this.init();
+
+    const newQuickTask = { ...data, id: this.lastQuickId++ };
+    this.quickStore.push(newQuickTask);
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem("lastQuickId", this.lastQuickId.toString());
+      localStorage.setItem("quickTasks", JSON.stringify(this.quickStore));
     }
   }
 }
