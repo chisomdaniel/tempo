@@ -1,5 +1,5 @@
 import CreateForm from "../components/create-form";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { displayState } from "../shared/types";
 import Timer from "../components/timer";
 import HistoryItem from "../components/history-item";
@@ -12,9 +12,31 @@ export function Dashboard() {
   const [displayState, setDisplayState] = useState<displayState>("action");
   const [sessionsCount, setSessionsCount] = useState(0);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [username, setUsername] = useState("User");
+
+  useEffect(() => {
+    const storedName = localStorage.getItem("username");
+    if (!storedName) {
+      const name = prompt("Please enter your name:") || "User";
+      localStorage.setItem("username", JSON.stringify(name));
+      setUsername(name);
+    } else {
+      setUsername(JSON.parse(storedName));
+    }
+  }, []);
+
+  useEffect(() => {
+    db.getAllData().then((data) => setTasks(data));
+  }, []);
 
   const handleStartNewTask = () => {
     setDisplayState("create");
+  };
+
+  const handleStartSavedTask = () => {
+    document
+      .getElementById("saved-tasks")
+      ?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -41,7 +63,7 @@ export function Dashboard() {
           </div>
         </nav>
         <section className="greeting">
-          <h1 className="text-headline-lg">Good morning, Daniel.</h1>
+          <h1 className="text-headline-lg">Good morning, {username}.</h1>
           <div className="text-body-md flex flex-col items-start gap-2 md:flex-row md:items-center md:gap-4">
             <p>Wednesday, May 27</p>
             <span className="chip">{sessionsCount} Scheduled Sessions</span>
@@ -58,7 +80,10 @@ export function Dashboard() {
               >
                 Start new task
               </button>
-              <button className="text-body-md btn-secondary">
+              <button
+                className="text-body-md btn-secondary"
+                onClick={handleStartSavedTask}
+              >
                 Select saved task
               </button>
             </div>
@@ -84,7 +109,7 @@ export function Dashboard() {
             />
           )}
         </section>
-        <section className="saved-tasks">
+        <section id="saved-tasks" className="saved-tasks">
           <h2 className="text-headline-md">Quick Start</h2>
           <div
             aria-label="Saved tasks"
