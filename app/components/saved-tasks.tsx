@@ -1,6 +1,35 @@
 import db from "~/utils/db.service";
 import type { displayState, Task, QuickTask } from "../shared/types";
 import type { Dispatch, SetStateAction } from "react";
+import Svg from "./svg";
+
+interface savedTasksTileProps {
+  qt: QuickTask;
+  setSelectedQuickTask: Dispatch<SetStateAction<QuickTask | null>>;
+}
+
+export function SavedTasksTile({
+  qt,
+  setSelectedQuickTask,
+}: savedTasksTileProps) {
+  return (
+    <div
+      key={qt.id}
+      className="task-card surface-card rounded-2xl w-40 h-40 p-6 shrink-0 flex flex-col gap-4 justify-between cursor-pointer hover:bg-(--color-surface-container-highest) transition-colors"
+      onClick={() => setSelectedQuickTask(qt)}
+    >
+      <span className="bg-(--color-bg-2) w-10 h-10 rounded-full grid place-content-center">
+        <Svg name={qt.icon} />
+      </span>
+      <div>
+        <h3 className="text-body-md whitespace-nowrap overflow-hidden text-ellipsis">
+          {qt.taskName}
+        </h3>
+        <p className="text-label-md">{qt.mins} Min</p>
+      </div>
+    </div>
+  );
+}
 
 interface SavedTasksProps {
   selectedQuickTask: QuickTask;

@@ -1,18 +1,37 @@
 import CreateForm from "../components/create-form";
 import { useState, useEffect } from "react";
-import type { displayState, QuickTask } from "../shared/types";
+import type { displayState, QuickTask, Task } from "../shared/types";
 import Timer from "../components/timer";
 import HistoryItem from "../components/history-item";
 import db from "~/utils/db.service";
-import type { Task } from "../shared/types";
 import Modal from "../components/modal";
 import SaveTaskForm from "../components/save-task-form";
 import Svg from "../components/svg";
-import SavedTasks from "../components/saved-tasks";
+import SavedTasks, { SavedTasksTile } from "../components/saved-tasks";
+import "../styles/dashboard.css";
+import type { Route } from "./+types/dashboard";
 
-export function Dashboard() {
+export async function clientLoader() {
+  const storedName = localStorage.getItem("username");
+  let username = JSON.parse(storedName || "null");
+
+  if (username === "null" || username === "User") {
+    username = prompt("Please enter your name:") || "User";
+    localStorage.setItem("username", JSON.stringify(username));
+  }
+
+  const allData = await db.getAllData();
+  const quickTaskData = await db.getQuickTasks();
+
+  return {
+    username,
+    allData,
+    quickTaskData,
+  };
+}
+
+export default function Dashboard({ loaderData }: Route.ComponentProps) {
   const [minutes, setMinutes] = useState(25);
-  const [startTimer, setStartTimer] = useState(false);
   const [displayState, setDisplayState] = useState<displayState>("action");
   const [sessionsCount, setSessionsCount] = useState(0);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -26,19 +45,9 @@ export function Dashboard() {
   );
 
   useEffect(() => {
-    const storedName = localStorage.getItem("username");
-    if (!storedName) {
-      const name = prompt("Please enter your name:") || "User";
-      localStorage.setItem("username", JSON.stringify(name));
-      setUsername(name);
-    } else {
-      setUsername(JSON.parse(storedName));
-    }
-  }, []);
-
-  useEffect(() => {
-    db.getAllData().then((data) => setTasks(data));
-    db.getQuickTasks().then((data) => setQuickTasks(data));
+    setUsername(loaderData.username);
+    setTasks(loaderData.allData);
+    setQuickTasks(loaderData.quickTaskData);
   }, []);
 
   const handleStartNewTask = () => {
@@ -56,20 +65,6 @@ export function Dashboard() {
       <header className="layout-container mt-6">
         <nav className="nav flex justify-between">
           <img src="/logo.png" alt="logo" />
-          {/* <ul className="flex">
-            <a>
-              <li>Home</li>
-            </a>
-            <a>
-              <li>Analytics</li>
-            </a>
-            <a>
-              <li>Tasks</li>
-            </a>
-            <a>
-              <li>Profile</li>
-            </a>
-          </ul> */}
           <div className="profile">
             {/* <img src="profile.png" alt="Profile"></img> */}
           </div>
@@ -104,7 +99,6 @@ export function Dashboard() {
           {displayState === "create" && (
             <CreateForm
               setDisplayState={setDisplayState}
-              setStartTimer={setStartTimer}
               setMinutes={setMinutes}
               setSessionsCount={setSessionsCount}
               setTasks={setTasks}
@@ -128,21 +122,10 @@ export function Dashboard() {
             className="saved-tasks-list flex gap-6 mt-6 w-full overflow-x-scroll no-scrollbar"
           >
             {quickTasks.map((qt) => (
-              <div
-                key={qt.id}
-                className="task-card surface-card rounded-2xl w-40 h-40 p-6 shrink-0 flex flex-col gap-4 justify-between cursor-pointer hover:bg-(--color-surface-container-highest) transition-colors"
-                onClick={() => setSelectedQuickTask(qt)}
-              >
-                <span className="bg-(--color-bg-2) w-10 h-10 rounded-full grid place-content-center">
-                  <Svg name={qt.icon} />
-                </span>
-                <div>
-                  <h3 className="text-body-md whitespace-nowrap overflow-hidden text-ellipsis">
-                    {qt.taskName}
-                  </h3>
-                  <p className="text-label-md">{qt.mins} Min</p>
-                </div>
-              </div>
+              <SavedTasksTile
+                qt={qt}
+                setSelectedQuickTask={setSelectedQuickTask}
+              />
             ))}
 
             <div
@@ -222,20 +205,6 @@ export function Dashboard() {
       </main>
 
       {/* <footer className="layout-container">
-        <ul>
-          <a>
-            <li>Home</li>
-          </a>
-          <a>
-            <li>Analytics</li>
-          </a>
-          <a>
-            <li>Tasks</li>
-          </a>
-          <a>
-            <li>Profile</li>
-          </a>
-        </ul>
       </footer> */}
     </>
   );

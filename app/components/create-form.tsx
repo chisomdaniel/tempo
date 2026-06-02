@@ -18,7 +18,6 @@ import type { Dispatch, SetStateAction } from "react";
 
 interface CreateFormProps {
   setDisplayState: Dispatch<SetStateAction<displayState>>;
-  setStartTimer: Dispatch<SetStateAction<boolean>>;
   setMinutes: Dispatch<SetStateAction<number>>;
   setSessionsCount: Dispatch<SetStateAction<number>>;
   setTasks: Dispatch<SetStateAction<Task[]>>;
@@ -26,7 +25,6 @@ interface CreateFormProps {
 
 export default function CreateForm({
   setDisplayState,
-  setStartTimer,
   setMinutes,
   setSessionsCount,
   setTasks,
@@ -65,19 +63,19 @@ export default function CreateForm({
       ...formData,
       startTime: String(Date.now()),
     };
-    
+
     // update local form state
     setFormData(newTask);
-    
+
     // await db operations
     await db.addData(newTask);
     const allTasks = await db.getAllData();
-    
+
     // set actual task array from db
     setTasks(allTasks);
-    
+
     setDisplayState("timer");
-    setStartTimer(true);
+    // setStartTimer(true);
     setMinutes(newTask.mins || 0);
     setSessionsCount((prev) => prev + 1);
     console.log(newTask);
