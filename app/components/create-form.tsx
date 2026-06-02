@@ -5,6 +5,7 @@ import "../styles/create-form.css";
 import db from "~/utils/db.service";
 import type { displayState, Task } from "../shared/types";
 import type { Dispatch, SetStateAction } from "react";
+import { SvgInput, type SvgName } from "./svg";
 
 // const schema = z.object({
 //   name: z.string().min(1, "Provide a name for the activity"),
@@ -47,6 +48,7 @@ export default function CreateForm({
     icon: "calendar",
     id: 0,
   });
+  const [selectedIcon, setSelectedIcon] = useState<SvgName>("calendar");
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = event.target;
@@ -62,6 +64,7 @@ export default function CreateForm({
     const newTask = {
       ...formData,
       startTime: String(Date.now()),
+      icon: selectedIcon,
     };
 
     // update local form state
@@ -99,6 +102,7 @@ export default function CreateForm({
           className="input-base"
           value={formData.taskName}
           onChange={handleChange}
+          required
         />
       </div>
 
@@ -112,6 +116,7 @@ export default function CreateForm({
           className="input-base"
           value={formData.desc}
           onChange={handleChange}
+          required
         />
       </div>
 
@@ -125,8 +130,13 @@ export default function CreateForm({
           className="input-base"
           value={formData.mins}
           onChange={handleChange}
+          required
+          min="1"
+          step="1"
         />
       </div>
+
+      <SvgInput required={true} setSelectedIcon={setSelectedIcon} />
 
       <input type="submit" value="Start" className="btn-secondary" />
     </form>

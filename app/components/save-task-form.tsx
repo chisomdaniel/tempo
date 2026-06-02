@@ -3,6 +3,7 @@ import "../styles/create-form.css";
 import db from "~/utils/db.service";
 import type { QuickTask } from "../shared/types";
 import type { Dispatch, SetStateAction } from "react";
+import { SvgInput, type SvgName } from "./svg";
 
 interface SaveTaskFormProps {
   setQuickTasks: Dispatch<SetStateAction<QuickTask[]>>;
@@ -19,6 +20,7 @@ export default function SaveTaskForm({
     mins: 0,
     icon: "calendar", // default
   });
+  const [selectedIcon, setSelectedIcon] = useState<SvgName>("calendar");
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = event.target;
@@ -30,7 +32,11 @@ export default function SaveTaskForm({
 
   const handleSubmit = async (event: React.ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
-    await db.addQuickTask(formData);
+    const newTask = {
+      ...formData,
+      icon: selectedIcon,
+    };
+    await db.addQuickTask(newTask);
     const allQuickTasks = await db.getQuickTasks();
     setQuickTasks(allQuickTasks);
     onClose();
@@ -80,6 +86,8 @@ export default function SaveTaskForm({
           min="1"
         />
       </div>
+
+      <SvgInput required={true} setSelectedIcon={setSelectedIcon} />
 
       <input type="submit" value="Save Task" className="btn-primary mt-4" />
     </form>
